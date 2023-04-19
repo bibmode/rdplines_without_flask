@@ -204,7 +204,7 @@ with open(filename, 'r') as file:
     tol = 0.01  # the tolerance value to compare how close to zero the t statistic
 
     if abs(t_statistic) < tol and p_value > 0.05:
-        print('Result : There is no significant difference between the means of the two lines\n')
+        print('Result : There is no significant difference between the the two lines\n')
     else:
         print(
-            'Result : There is a significant difference between the means of the two lines\n')
+            'Result : There is a significant difference between the two lines\n')
