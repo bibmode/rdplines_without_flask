@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from typing import List
 from concurrent.futures import ThreadPoolExecutor
+from scipy.stats import ttest_ind
 
 executor = ThreadPoolExecutor(2)
 
@@ -155,21 +156,24 @@ with open(filename, 'r') as file:
         original_file_size = get_file_size(filename)
         parallel_file_size = get_file_size(directory)
 
+    # calculate mean
+    classic_mean = np.mean(np.mean(classic_points, axis=0)[1])
+    parallelized_mean = np.mean(np.mean(parallelized_points, axis=0)[1])
+
+    # calculate standard deviation
+    classic_standard_deviation = np.std(classic_points, ddof=1)
+    parallelized_standard_deviation = np.std(parallelized_points, ddof=1)
+
+    # calculate the t statistic
+    t_statistic, p_value = ttest_ind([point[0] for point in classic_points], [
+                                     point[0] for point in parallelized_points])
+
     # print out information
     print('\nEpsilon value = ' + str(epsilon))
 
     print('\nNumber of points in original line : ' + str(len(points)))
     print('Number of points in simplified line : ' +
           str(len(parallelized_points)))
-
-    print('\nMean of original line : ' + str(np.mean(points, axis=0)[1]))
-    print('Mean of simplified line : ' +
-          str(np.mean(parallelized_points, axis=0)[1]))
-
-    print('\nStandard deviation of original line : ' +
-          str(np.std(points, ddof=1)))
-    print('Standard Deviation of simplified line : ' +
-          str(np.std(parallelized_points, ddof=1)))
 
     print('\nFile size of original line : ' +
           str(original_file_size) + ' KB')
@@ -180,4 +184,27 @@ with open(filename, 'r') as file:
           str(classic_end_time - classic_start_time))
     print('Running time of parallelRDP : ' +
           str(parallelized_end_time - parallelized_start_time))
+
+    print('\nMean of original line : ' + str(classic_mean))
+    print('Mean of simplified line : ' +
+          str(parallelized_mean))
+
+    print('\nStandard deviation of original line : ' +
+          str(classic_standard_deviation))
+    print('Standard Deviation of simplified line : ' +
+          str(parallelized_standard_deviation))
+
+    print('\nT statistic : ' +
+          str(t_statistic))
+    print('P value : ' +
+          str(p_value))
     print('\n')
+
+    # write comparison results
+    tol = 0.01  # the tolerance value to compare how close to zero the t statistic
+
+    if abs(t_statistic) < tol and p_value > 0.05:
+        print('Result : There is no significant difference between the means of the two lines\n')
+    else:
+        print(
+            'Result : There is a significant difference between the means of the two lines\n')
