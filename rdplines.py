@@ -71,17 +71,23 @@ def find_optimal_chunk_size(data):
         return 20
 
 
-def calculate_epsilon(points, threshold):
-    """
-    Calculates a dynamic epsilon value for a set of points using the given
-    threshold value. The epsilon value is calculated as the average distance
-    between neighboring points times the threshold value.
-    """
-    # Calculate the distances between neighboring points
-    distances = np.abs(np.diff(points))
+def calculate_epsilon(points):
+    num_points = len(points)
+    x1, y1 = points[0]  # get the first point of points
+    x2, y2 = points[-1]  # get the last point of points
 
-    # Calculate the average distance and multiply by the threshold
-    epsilon = np.mean(distances) * threshold
+    # Calculating the perpendicular distance of each point to the line segment
+    U = []    # Store all the perpendicular distance for each points
+    for i in range(num_points):
+        xi, yi = points[i]
+        ui = abs((y2 - y1) * xi - (x2 - x1) * yi + x2 * y1 -
+                 y2 * x1) / ((y2 - y1) * 2 + (x2 - x1) * 2) ** 0.5
+        U.append(ui)
+
+    total_ui = sum(U)   # Sums all the perpendicular distance for each points
+    time_interval = (x2 - x1) / num_points    # get the time_interval of points
+    # calculating the dynamic epsilon value
+    epsilon = (total_ui * time_interval) / (x2 - x1)
 
     return epsilon
 
@@ -128,7 +134,7 @@ with open(filename, 'r') as file:
     points = np.column_stack([range(len(first_row)), second_row])
 
     # get automatic epsilon value
-    epsilon = calculate_epsilon(points, threshold=0.5)
+    epsilon = calculate_epsilon(points)
 
     # chunk size
     chunk = find_optimal_chunk_size(points)
