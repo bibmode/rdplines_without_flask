@@ -90,23 +90,7 @@ def calculate_epsilon(data):
     Find an epsilon value for Ramer-Douglas-Peucker line simplification
     based on the median absolute deviation (MAD) of the data.
     """
-    len_data = len(data)
-    multiplier = 1
-    if len_data <= 1000:
-        multiplier = 1
-    elif len_data <= 5000:
-        multiplier = 2
-    elif len_data <= 10000:
-        multiplier = 3
-    elif len_data <= 50000:
-        multiplier = 4
-    elif len_data <= 100000:
-        multiplier = 5
-    else:
-        multiplier = 6
-
-    mad = np.median(np.abs(data - np.median(data)))
-    epsilon = multiplier * mad
+    epsilon = np.median(np.abs(data - np.median(data)))
     return epsilon
 
 
@@ -172,9 +156,9 @@ with open(filename, 'r') as file:
 
     # file sizes
     save_file = save_points_to_csv(
-        points=parallelized_points, filename=filename[10:], columns=cols)
+        points=parallelized_points, filename=filename[14:], columns=cols)
     directory = 'simplified/' + \
-        filename[10:].split('.')[0] + '(simplified).csv'
+        filename[14:].split('.')[0] + '(simplified).csv'
 
     original_file_size = 0
     parallel_file_size = 0
