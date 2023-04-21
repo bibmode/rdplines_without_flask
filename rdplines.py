@@ -90,8 +90,24 @@ def calculate_epsilon(data):
     Find an epsilon value for Ramer-Douglas-Peucker line simplification
     based on the median absolute deviation (MAD) of the data.
     """
+    len_data = len(data)
+    multiplier = 1
+    if len_data <= 1000:
+        multiplier = 1
+    elif len_data <= 5000:
+        multiplier = 2
+    elif len_data <= 10000:
+        multiplier = 3
+    elif len_data <= 50000:
+        multiplier = 4
+    elif len_data <= 100000:
+        multiplier = 5
+    else:
+        multiplier = 6
+
     mad = np.median(np.abs(data - np.median(data)))
-    return mad
+    epsilon = multiplier * mad
+    return epsilon
 
 
 def get_file_size(directory):
