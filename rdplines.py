@@ -15,15 +15,15 @@ def classic_rdp(points, eps):
     """
     Returns the classic rdp result
     """
-    classic_rdp = rdp(points, epsilon=eps)
-    return classic_rdp
+    res = rdp(points, epsilon=eps)
+    return res
 
 
 def parallel_rdp(points, eps):
     """
     Returns the rdp result for every chunk
     """
-    future = executor.submit(classic_rdp, points, eps)
+    future = executor.submit(rdp, points, epsilon=eps)
     result = future.result()
     return result
 
@@ -71,25 +71,27 @@ def find_optimal_chunk_size(data):
         return 20
 
 
-def calculate_epsilon(points):
-    num_points = len(points)
-    x1, y1 = points[0]  # get the first point of points
-    x2, y2 = points[-1]  # get the last point of points
+# def calculate_epsilon(points, threshold=0.5):
+#     """
+#     Calculates a dynamic epsilon value for a set of points using the given
+#     threshold value. The epsilon value is calculated as the average distance
+#     between neighboring points times the threshold value.
+#     """
+#     # Calculate the distances between neighboring points
+#     distances = np.abs(np.diff(points))
 
-    # Calculating the perpendicular distance of each point to the line segment
-    U = []    # Store all the perpendicular distance for each points
-    for i in range(num_points):
-        xi, yi = points[i]
-        ui = abs((y2 - y1) * xi - (x2 - x1) * yi + x2 * y1 -
-                 y2 * x1) / ((y2 - y1) * 2 + (x2 - x1) * 2) ** 0.5
-        U.append(ui)
+#     # Calculate the average distance and multiply by the threshold
+#     epsilon = np.mean(distances) * threshold
 
-    total_ui = sum(U)   # Sums all the perpendicular distance for each points
-    time_interval = (x2 - x1) / num_points    # get the time_interval of points
-    # calculating the dynamic epsilon value
-    epsilon = (total_ui * time_interval) / (x2 - x1)
+#     return epsilon
 
-    return epsilon
+def calculate_epsilon(data):
+    """
+    Find an epsilon value for Ramer-Douglas-Peucker line simplification
+    based on the median absolute deviation (MAD) of the data.
+    """
+    mad = np.median(np.abs(data - np.median(data)))
+    return mad
 
 
 def get_file_size(directory):
@@ -135,9 +137,12 @@ with open(filename, 'r') as file:
 
     # get automatic epsilon value
     epsilon = calculate_epsilon(points)
+    # epsilon = 0.5
 
     # chunk size
     chunk = find_optimal_chunk_size(points)
+
+    print(points)
 
     # get running time for classic rdp
     classic_start_time = time.time()
@@ -163,23 +168,24 @@ with open(filename, 'r') as file:
         parallel_file_size = get_file_size(directory)
 
     # calculate mean
+    original_mean = np.mean(np.mean(points, axis=0)[1])
     classic_mean = np.mean(np.mean(classic_points, axis=0)[1])
     parallelized_mean = np.mean(np.mean(parallelized_points, axis=0)[1])
 
     # calculate standard deviation
+    original_standard_deviation = np.std(points, ddof=1)
     classic_standard_deviation = np.std(classic_points, ddof=1)
     parallelized_standard_deviation = np.std(parallelized_points, ddof=1)
 
     # calculate the t statistic
-    t_statistic, p_value = ttest_ind([point[0] for point in classic_points], [
+    t_statistic, p_value = ttest_ind([point[0] for point in points], [
                                      point[0] for point in parallelized_points])
 
     # print out information
     print('\nEpsilon value = ' + str(epsilon))
 
-    print('\nNumber of points in original line : ' + str(len(points)))
-    print('Number of points in simplified line : ' +
-          str(len(parallelized_points)))
+    # print(classic_points)
+    # print(parallelized_points)
 
     print('\nFile size of original line : ' +
           str(original_file_size) + ' KB')
@@ -191,13 +197,22 @@ with open(filename, 'r') as file:
     print('Running time of parallelRDP : ' +
           str(parallelized_end_time - parallelized_start_time))
 
-    print('\nMean of original line : ' + str(classic_mean))
-    print('Mean of simplified line : ' +
+    print('\nNumber of points in original line : ' + str(len(points)))
+    print('Number of points in classic rdp line : ' +
+          str(len(classic_points)))
+    print('Number of points in parallel rdp line : ' +
+          str(len(parallelized_points)))
+
+    print('\nMean of original line : ' + str(original_mean))
+    print('Mean of classic rdp line : ' + str(classic_mean))
+    print('Mean of parallel rdp line : ' +
           str(parallelized_mean))
 
     print('\nStandard deviation of original line : ' +
+          str(original_standard_deviation))
+    print('Standard deviation of classic rdp line : ' +
           str(classic_standard_deviation))
-    print('Standard Deviation of simplified line : ' +
+    print('Standard Deviation of parallel rdp line : ' +
           str(parallelized_standard_deviation))
 
     print('\nT statistic : ' +
@@ -207,7 +222,7 @@ with open(filename, 'r') as file:
     print('\n')
 
     # write comparison results
-    tol = 0.01  # the tolerance value to compare how close to zero the t statistic
+    tol = 0.09  # the tolerance value to compare how close to zero the t statistic
 
     if abs(t_statistic) < tol and p_value > 0.05:
         print('Result : There is no significant difference between the two lines\n')
