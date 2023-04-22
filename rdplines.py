@@ -71,26 +71,15 @@ def find_optimal_chunk_size(data):
         return 20
 
 
-# def calculate_epsilon(points, threshold=0.5):
-#     """
-#     Calculates a dynamic epsilon value for a set of points using the given
-#     threshold value. The epsilon value is calculated as the average distance
-#     between neighboring points times the threshold value.
-#     """
-#     # Calculate the distances between neighboring points
-#     distances = np.abs(np.diff(points))
-
-#     # Calculate the average distance and multiply by the threshold
-#     epsilon = np.mean(distances) * threshold
-
-#     return epsilon
-
 def calculate_epsilon(data):
     """
     Find an epsilon value for Ramer-Douglas-Peucker line simplification
     based on the median absolute deviation (MAD) of the data.
     """
-    epsilon = np.median(np.abs(data - np.median(data)))
+    time_interval = 1  # determines the intensity of the change (1 = 100% maximum value for the best epsilon, 0.5 = 50%, 0.1 = 10%)
+    mad = np.median(np.abs(data - np.median(data)))  # MAD
+    # multiplying the mad to the intensity of change to get the epsilon
+    epsilon = mad * time_interval
     return epsilon
 
 
@@ -222,7 +211,7 @@ with open(filename, 'r') as file:
     print('\n')
 
     # write comparison results
-    tol = 0.09  # the tolerance value to compare how close to zero the t statistic
+    tol = 0.05  # the tolerance value to compare how close to zero the t statistic
 
     if abs(t_statistic) < tol and p_value > 0.05:
         print('Result : There is no significant difference between the two lines\n')
