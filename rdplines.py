@@ -8,7 +8,7 @@ from typing import List
 from concurrent.futures import ThreadPoolExecutor
 from scipy.stats import ttest_ind
 
-executor = ThreadPoolExecutor(2)
+executor = ThreadPoolExecutor(4)
 
 
 def classic_rdp(points, eps):
@@ -33,8 +33,8 @@ def parallel_rdp_algorithm(data: List[List[float]], epsilon: float, chunk_size: 
     This is the function where the process of running all the chunks of the original line will happen in a parallel way through the use of multiprocessing's threadpoolexecutor
     """
 
-    # Create a thread pool with two threads
-    executor = ThreadPoolExecutor(2)
+    # Create a thread pool with four threads
+    executor = ThreadPoolExecutor(4)
 
     # Divide the data into chunks of size chunk_size (if specified)
     if chunk_size:
@@ -60,7 +60,7 @@ def find_optimal_chunk_size(data):
     """
     len_data = len(data)
     if len_data <= 100:
-        return 1
+        return 2
     elif len_data <= 1000:
         return 4
     elif len_data <= 5000:
