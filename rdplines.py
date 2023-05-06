@@ -1,6 +1,7 @@
 import csv
 import os
 import time
+import math
 from rdp import rdp
 import pandas as pd
 import numpy as np
@@ -58,17 +59,14 @@ def find_optimal_chunk_size(data):
     """
     Returns the number of chunks that the points will be divided to be processed in a parallel way
     """
-    len_data = len(data)
-    if len_data <= 100:
-        return 2
-    elif len_data <= 1000:
-        return 4
-    elif len_data <= 5000:
-        return 8
-    elif len_data <= 30000:
-        return 16
-    else:
-        return 20
+    num_points = len(data)
+    # determine the number of chunks based on the number of points
+    num_chunks = math.ceil(num_points / 4000)
+    if num_chunks > 64:  # if the number of chunks is greater than 64, set it to 64
+        num_chunks = 64
+
+    print(num_chunks)
+    return num_chunks
 
 
 def calculate_epsilon(data):
@@ -81,6 +79,23 @@ def calculate_epsilon(data):
     # multiplying the mad to the intensity of change to get the epsilon
     epsilon = mad * time_interval
     return epsilon
+    # num_points = len(points)
+    # x1, y1 = points[0]  # get the first point of points
+    # x2, y2 = points[-1]  # get the last point of points
+
+    # # Calculating the perpendicular distance of each point to the line segment
+    # U = []    # Store all the perpendicular distance for each points
+    # for i in range(num_points):
+    #     xi, yi = points[i]
+    #     ui = abs((y2 - y1) * xi - (x2 - x1) * yi + x2 * y1 -
+    #              y2 * x1) / ((y2 - y1) * 2 + (x2 - x1) * 2) ** 0.5
+    #     U.append(ui)
+
+    # total_ui = sum(U)   # Sums all the perpendicular distance for each points
+    # time_interval = (x2 - x1) / num_points    # get the time_interval of points
+    # # calculating the dynamic epsilon value
+    # epsilon = (total_ui * time_interval) / (x2 - x1)
+    # return epsilon
 
 
 def get_file_size(directory):
@@ -126,7 +141,7 @@ with open(filename, 'r') as file:
 
     # get automatic epsilon value
     epsilon = calculate_epsilon(points)
-    # epsilon = 0.5
+    # epsilon = 0
 
     # chunk size
     chunk = find_optimal_chunk_size(points)
