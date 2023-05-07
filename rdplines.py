@@ -59,14 +59,17 @@ def find_optimal_chunk_size(data):
     """
     Returns the number of chunks that the points will be divided to be processed in a parallel way
     """
-    num_points = len(data)
-    # determine the number of chunks based on the number of points
-    num_chunks = math.ceil(num_points / 4000)
-    if num_chunks > 48:  # if the number of chunks is greater than 64, set it to 64
-        num_chunks = 48
-
-    print(num_chunks)
-    return num_chunks
+    len_data = len(data)
+    if len_data <= 100:
+        return 2
+    elif len_data > 100 and len_data <= 1000:
+        return 4
+    elif len_data > 1000 and len_data <= 10000:
+        return 16
+    elif len_data > 10000 and len_data <= 100000:
+        return 32
+    elif len_data > 100000:
+        return 64
 
 
 def calculate_epsilon(data):
@@ -129,8 +132,6 @@ with open(filename, 'r') as file:
     # chunk size
     chunk = find_optimal_chunk_size(points)
 
-    print(points)
-
     # get running time for classic rdp
     classic_start_time = time.time()
     classic_points = rdp(points, epsilon)
@@ -166,8 +167,8 @@ with open(filename, 'r') as file:
         [p[1] for p in parallelized_points])
 
     # calculate the t statistic
-    t_statistic, p_value = ttest_ind([point[0] for point in points], [
-                                     point[0] for point in parallelized_points])
+    t_statistic, p_value = ttest_ind([point[1] for point in points], [
+                                     point[1] for point in parallelized_points])
 
     # print out information
     print('\nEpsilon value = ' + str(epsilon))
@@ -212,7 +213,7 @@ with open(filename, 'r') as file:
     # write comparison results
     tol = 0.05  # the tolerance value to compare how close to zero the t statistic
 
-    if abs(t_statistic) < tol and p_value > 0.05:
+    if p_value >= tol:
         print('Result : There is no significant difference between the two lines\n')
     else:
         print(
