@@ -55,26 +55,6 @@ def parallel_rdp_algorithm(data: List[List[float]], epsilon: float, chunk_size: 
     return [point for sublist in results for point in sublist]
 
 
-# def find_optimal_chunk_size(data):
-#     """
-#     Returns the number of chunks that the points will be divided to be processed in a parallel way
-#     """
-#     len_data = len(data)
-#     if len_data <= 100:
-#         return 2
-#     elif len_data <= 1000 and len_data > 100:
-#         return 4
-#     elif len_data <= 5000 and len_data > 1000:
-#         return 8
-#     elif len_data <= 30000 and len_data > 5000:
-#         return 16
-#     elif len_data <= 50000 and len_data > 30000:
-#         return 20
-#     elif len_data <= 100000 and len_data > 50000:
-#         return 28
-#     elif len_data > 100000:
-#         return 42
-
 def find_optimal_chunk_size(data):
     """
     Returns the number of chunks that the points will be divided to be processed in a parallel way
@@ -88,16 +68,6 @@ def find_optimal_chunk_size(data):
     print(num_chunks)
     return num_chunks
 
-# def find_optimal_chunk_size(data, num_threads=4):
-#     second_col = [row[1] for row in data]
-#     n = data.shape[0]  # get number of points in dataset
-#     # get standard deviation of second column values
-#     std_dev = statistics.stdev(second_col)
-#     chunk_size = max(1, int(n / (num_threads * std_dev))
-#                      )  # calculate chunk size
-#     print(chunk_size)
-#     return chunk_size
-
 
 def calculate_epsilon(data):
     """
@@ -109,23 +79,6 @@ def calculate_epsilon(data):
     # multiplying the mad to the intensity of change to get the epsilon
     epsilon = mad * time_interval
     return epsilon
-    # num_points = len(points)
-    # x1, y1 = points[0]  # get the first point of points
-    # x2, y2 = points[-1]  # get the last point of points
-
-    # # Calculating the perpendicular distance of each point to the line segment
-    # U = []    # Store all the perpendicular distance for each points
-    # for i in range(num_points):
-    #     xi, yi = points[i]
-    #     ui = abs((y2 - y1) * xi - (x2 - x1) * yi + x2 * y1 -
-    #              y2 * x1) / ((y2 - y1) * 2 + (x2 - x1) * 2) ** 0.5
-    #     U.append(ui)
-
-    # total_ui = sum(U)   # Sums all the perpendicular distance for each points
-    # time_interval = (x2 - x1) / num_points    # get the time_interval of points
-    # # calculating the dynamic epsilon value
-    # epsilon = (total_ui * time_interval) / (x2 - x1)
-    # return epsilon
 
 
 def get_file_size(directory):
