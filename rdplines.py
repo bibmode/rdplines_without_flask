@@ -55,6 +55,26 @@ def parallel_rdp_algorithm(data: List[List[float]], epsilon: float, chunk_size: 
     return [point for sublist in results for point in sublist]
 
 
+# def find_optimal_chunk_size(data):
+#     """
+#     Returns the number of chunks that the points will be divided to be processed in a parallel way
+#     """
+#     len_data = len(data)
+#     if len_data <= 100:
+#         return 2
+#     elif len_data <= 1000 and len_data > 100:
+#         return 4
+#     elif len_data <= 5000 and len_data > 1000:
+#         return 8
+#     elif len_data <= 30000 and len_data > 5000:
+#         return 16
+#     elif len_data <= 50000 and len_data > 30000:
+#         return 20
+#     elif len_data <= 100000 and len_data > 50000:
+#         return 28
+#     elif len_data > 100000:
+#         return 42
+
 def find_optimal_chunk_size(data):
     """
     Returns the number of chunks that the points will be divided to be processed in a parallel way
@@ -62,11 +82,21 @@ def find_optimal_chunk_size(data):
     num_points = len(data)
     # determine the number of chunks based on the number of points
     num_chunks = math.ceil(num_points / 4000)
-    if num_chunks > 64:  # if the number of chunks is greater than 64, set it to 64
-        num_chunks = 64
+    if num_chunks > 48:  # if the number of chunks is greater than 64, set it to 64
+        num_chunks = 48
 
     print(num_chunks)
     return num_chunks
+
+# def find_optimal_chunk_size(data, num_threads=4):
+#     second_col = [row[1] for row in data]
+#     n = data.shape[0]  # get number of points in dataset
+#     # get standard deviation of second column values
+#     std_dev = statistics.stdev(second_col)
+#     chunk_size = max(1, int(n / (num_threads * std_dev))
+#                      )  # calculate chunk size
+#     print(chunk_size)
+#     return chunk_size
 
 
 def calculate_epsilon(data):
@@ -140,7 +170,7 @@ with open(filename, 'r') as file:
     points = np.column_stack([range(len(first_row)), second_row])
 
     # get automatic epsilon value
-    epsilon = calculate_epsilon(points)
+    epsilon = calculate_epsilon([p[1] for p in points])
     # epsilon = 0
 
     # chunk size
@@ -177,9 +207,10 @@ with open(filename, 'r') as file:
     parallelized_mean = np.mean(np.mean(parallelized_points, axis=0)[1])
 
     # calculate standard deviation
-    original_standard_deviation = np.std(points, ddof=1)
-    classic_standard_deviation = np.std(classic_points, ddof=1)
-    parallelized_standard_deviation = np.std(parallelized_points, ddof=1)
+    original_standard_deviation = np.std([p[1] for p in points])
+    classic_standard_deviation = np.std([p[1] for p in classic_points])
+    parallelized_standard_deviation = np.std(
+        [p[1] for p in parallelized_points])
 
     # calculate the t statistic
     t_statistic, p_value = ttest_ind([point[0] for point in points], [
